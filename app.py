@@ -47,7 +47,7 @@ HTML_TEMPLATE = """
             Public Callback: <code>{{ callback_url }}</code>
         </div>
 
-        <form action="/generate-url" method="POST">
+        <form action="/generate-url" method="POST" target="_blank">
             <div class="form-group">
                 <label>Test Chassis Number (6+ chars):</label>
                 <input type="text" name="chassis" value="WDD17604423456789" required>
