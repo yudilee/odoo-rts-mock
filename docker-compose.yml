@@ -9,8 +9,10 @@ services:
       - ODOO_SHARED_SECRET=ffa05c883542271e5e8447ce86f6a887296ff673e9301835d2103b98cbbd365c
       - ODOO_WEBHOOK_SECRET=d76c08b8a91b29fbdd4e12e3dceb51ccaf296b44f4bb517f895aca15abc54a6c
       - MOCK_PUBLIC_URL=https://odoo-mock.yourdomain.com
+    ports:
+      - "5000:5000"
     networks:
-      - web
+      - odoo-mock-net
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.odoo-mock.rule=Host(`odoo-mock.yourdomain.com`)"
@@ -19,5 +21,5 @@ services:
       - "traefik.http.services.odoo-mock.loadbalancer.server.port=5000"
 
 networks:
-  web:
-    external: true
+  odoo-mock-net:
+    driver: bridge
