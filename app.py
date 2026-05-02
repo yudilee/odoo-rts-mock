@@ -36,6 +36,19 @@ HTML_TEMPLATE = """
         .config-info { background: #f1f5f9; padding: 20px; border-radius: 12px; margin-bottom: 30px; font-size: 14px; }
         .config-info code { background: #e2e8f0; padding: 2px 6px; border-radius: 4px; }
     </style>
+    <script>
+        // Background Polling for Updates
+        let currentUpdate = {{ last_update }};
+        setInterval(async () => {
+            try {
+                const response = await fetch('/api/check-update');
+                const data = await response.json();
+                if (data.last_update > currentUpdate) {
+                    window.location.reload();
+                }
+            } catch (e) {}
+        }, 2000);
+    </script>
 </head>
 <body>
     <div class="card">
@@ -63,7 +76,10 @@ HTML_TEMPLATE = """
         <div style="margin-top: 50px;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
                 <h3 style="margin: 0;">Latest Webhook Result</h3>
-                <span class="status-badge">Signature Verified</span>
+                <div style="display: flex; gap: 8px;">
+                    <span class="status-badge" style="background: #e0f2fe; color: #0369a1;">Live Polling Active</span>
+                    <span class="status-badge">Signature Verified</span>
+                </div>
             </div>
             <pre>{{ received_data | tojson(indent=2) }}</pre>
         </div>
@@ -74,6 +90,7 @@ HTML_TEMPLATE = """
 """
 
 last_received_data = None
+last_update_time = 0
 
 @app.route("/")
 def index():
@@ -82,8 +99,13 @@ def index():
         rts_url=RTS_BASE_URL, 
         callback_url=MOCK_PUBLIC_URL,
         timestamp=int(time.time()),
-        received_data=last_received_data
+        received_data=last_received_data,
+        last_update=last_update_time
     )
+
+@app.route("/api/check-update")
+def check_update():
+    return jsonify({"last_update": last_update_time})
 
 @app.route("/generate-url", methods=["POST"])
 def generate_url():
@@ -111,7 +133,7 @@ def generate_url():
 
 @app.route("/rts/labour-callback", methods=["POST"])
 def webhook():
-    global last_received_data
+    global last_received_data, last_update_time
     signature = request.headers.get("X-RTS-Signature")
     if not signature:
         return jsonify({"status": "error", "message": "Missing signature"}), 401
@@ -122,6 +144,7 @@ def webhook():
         return jsonify({"status": "error", "message": "Invalid signature"}), 403
 
     last_received_data = request.json
+    last_update_time = time.time()
     print(f"\\n[MOCK ODOO] Webhook received for JO: {last_received_data.get('job_order_id')}")
     
     return jsonify({"status": "success"})
