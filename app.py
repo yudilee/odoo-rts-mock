@@ -97,7 +97,7 @@ def generate_url():
         "customer_name": "Test Customer",
         "callback_url": f"{MOCK_PUBLIC_URL}/rts/labour-callback",
         "nonce": uuid.uuid4().hex,
-        "exp": str(int(time.time()) + 300)
+        "exp": str(int(time.time()) + 3600)
     }
     
     # Sort and sign
